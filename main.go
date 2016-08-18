@@ -1,9 +1,15 @@
+// mockaroon [--config=path/to/config] [port]
+
 package main
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 
@@ -19,9 +25,9 @@ type Endpoint struct {
 }
 
 type Config struct {
-	Serve     bool       `yaml:"serveFiles",`
-	Port      string     `yaml:"port",`
-	Endpoints []Endpoint `yaml:"endpoints",`
+	ServeFiles bool       `yaml:"serveFiles",omitempty`
+	Port       string     `yaml:"port"`
+	Endpoints  []Endpoint `yaml:"endpoints"`
 }
 
 func (e Endpoint) HandleHTTP(w http.ResponseWriter, req *http.Request) {
@@ -71,20 +77,51 @@ func Unmarshal(c *Config, data []byte) error {
 	return nil
 }
 
+func handleError(err error) {
+	fmt.Println(err)
+	os.Exit(2)
+}
+
 func main() {
 
-	port := "8080"
+	var configPath string
 
-	config := Config{}
-
-	// load in config file
-	err := config.LoadConfigFile("sample-config.yml")
-	if err != nil {
-		fmt.Println(err)
+	// defaults
+	config := Config{
+		Port:       "8000",
+		ServeFiles: false,
 	}
 
-	if config.Port != "" {
-		port = config.Port
+	// parse flags
+	flag.StringVar(&configPath, "config", "", "Path to Config File")
+	flag.Parse()
+
+	// load in config file
+	if configPath != "" {
+		err := config.LoadConfigFile(configPath)
+		if err != nil {
+			handleError(err)
+		}
+	}
+
+	// command line port overrides all
+	tail := flag.Args()
+	if len(tail) > 0 {
+		config.Port = tail[0]
+	}
+
+	// validate port
+	port, err := strconv.Atoi(config.Port)
+	if err != nil {
+		handleError(err)
+	}
+	if port < 1 {
+		handleError(errors.New(config.Port + " is not a valid port"))
+	}
+
+	// if port is not last param
+	if len(tail) > 1 {
+		fmt.Println("Warning: port goes at the end, all params after ignored")
 	}
 
 	// create mux router
@@ -97,11 +134,11 @@ func main() {
 		}
 	}
 
-	if config.Serve == true {
+	if config.ServeFiles == true {
 		muxRouter.PathPrefix("/").Handler(http.FileServer(http.Dir("./")))
 		fmt.Println("Serving static files")
 	}
 
-	fmt.Println("listening on port " + port)
-	http.ListenAndServe(":"+port, muxRouter)
+	fmt.Println("listening on port " + config.Port)
+	http.ListenAndServe(":"+config.Port, muxRouter)
 }
