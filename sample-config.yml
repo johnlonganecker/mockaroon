@@ -1,0 +1,22 @@
+port: 8080
+serveFiles: true
+endpoints:
+  - paths: 
+      - /path1
+      - /path2
+    methods: 
+      - GET
+    status: 200
+    headers: 
+      - Content-Type: application/json
+    body: '{"id": 40}'
+  - paths:
+      - /path3
+    methods: 
+      - GET
+      - POST
+    status: 200
+    headers: 
+      - Content-Type: application/json
+    body: '{"name": "John"}'
+proxy: "TODO"

@@ -1,22 +1,24 @@
 {
+  "port": "8080",
+  "serveFiles": true,
   "endpoints": [
     {
-      "paths": ["/blah", "/ok"],
+      "paths": ["/path1", "/path2"],
       "methods": ["GET"],
       "status": 200,
       "headers": [{
         "Content-Type": "application/json"
       }],
-      "body": "{\"a\": 40}"
+      "body": "{\"id\": 40}"
     },
     {
-      "paths": ["/blah"],
-      "methods": ["GET"],
+      "paths": ["/path3"],
+      "methods": ["GET", "POST"],
       "status": 200,
       "headers": [{
         "Content-Type": "application/json"
       }],
-      "body": "{\"a\": 20}"
+      "body": "{\"name\": \"john\"}"
     },
   ],
   "proxy": "TODO"

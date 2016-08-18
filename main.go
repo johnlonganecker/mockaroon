@@ -11,16 +11,17 @@ import (
 )
 
 type Endpoint struct {
-	Paths   []string            `json:"paths"`
-	Status  int                 `json:"status"`
-	Headers []map[string]string `json:"headers"`
-	Methods []string            `json:"methods"`
-	Body    string              `json:"body"`
+	Paths   []string            `yaml:"paths"`
+	Status  int                 `yaml:"status"`
+	Headers []map[string]string `yaml:"headers"`
+	Methods []string            `yaml:"methods"`
+	Body    string              `yaml:"body"`
 }
 
 type Config struct {
-	Port      string     `json:"Port"`
-	Endpoints []Endpoint `json:"Endpoint"`
+	Serve     bool       `yaml:"serveFiles",`
+	Port      string     `yaml:"port",`
+	Endpoints []Endpoint `yaml:"endpoints",`
 }
 
 func (e Endpoint) HandleHTTP(w http.ResponseWriter, req *http.Request) {
@@ -72,37 +73,20 @@ func Unmarshal(c *Config, data []byte) error {
 
 func main() {
 
-	port := ":8080"
+	port := "8080"
 
 	config := Config{}
 
-	err := config.LoadConfigFile("sample-config.json")
+	// load in config file
+	err := config.LoadConfigFile("sample-config.yml")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	// load in config file
-
-	// create Endpoints
-	//endpoints := config.Endpoints
-
-	//endpoints = append(endpoints, Endpoint{
-	//Paths: []string{"/bob", "/joe", "/moe/joe"},
-	//Headers: map[string]string{
-	//"Content-Type": "application/json",
-	//},
-	//Methods: []string{"GET", "POST"},
-	//Body:    "{\"ok\": 10}",
-	//})
-
-	//endpoints = append(endpoints, Endpoint{
-	//Paths: []string{"/okok"},
-	//Headers: map[string]string{
-	//"Content-Type": "application/json",
-	//},
-	//Methods: []string{"GET", "POST"},
-	//Body:    "{\"ok\": 10, \"b\": {\"c\": [1,2,3,4,5]}}",
-	//})
+	if config.Port != "" {
+		port = config.Port
+	}
+	port = ":" + port
 
 	// create mux router
 	muxRouter := mux.NewRouter()
@@ -113,6 +97,11 @@ func main() {
 			fmt.Println("adding route " + port + path)
 		}
 	}
+
+	if config.Serve == true {
+		muxRouter.PathPrefix("/").Handler(http.FileServer(http.Dir("./")))
+	}
+	fmt.Println(config.Serve)
 
 	http.ListenAndServe(port, muxRouter)
 }
