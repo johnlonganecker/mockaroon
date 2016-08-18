@@ -86,7 +86,6 @@ func main() {
 	if config.Port != "" {
 		port = config.Port
 	}
-	port = ":" + port
 
 	// create mux router
 	muxRouter := mux.NewRouter()
@@ -94,14 +93,15 @@ func main() {
 	for _, endpoint := range config.Endpoints {
 		for _, path := range endpoint.Paths {
 			muxRouter.HandleFunc(path, endpoint.HandleHTTP).Methods(endpoint.Methods...)
-			fmt.Println("adding route " + port + path)
+			fmt.Println("adding route " + path)
 		}
 	}
 
 	if config.Serve == true {
 		muxRouter.PathPrefix("/").Handler(http.FileServer(http.Dir("./")))
+		fmt.Println("Serving static files")
 	}
-	fmt.Println(config.Serve)
 
-	http.ListenAndServe(port, muxRouter)
+	fmt.Println("listening on port " + port)
+	http.ListenAndServe(":"+port, muxRouter)
 }
