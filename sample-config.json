@@ -1,0 +1,23 @@
+{
+  "endpoints": [
+    {
+      "paths": ["/blah", "/ok"],
+      "methods": ["GET"],
+      "status": 200,
+      "headers": [{
+        "Content-Type": "application/json"
+      }],
+      "body": "{\"a\": 40}"
+    },
+    {
+      "paths": ["/blah"],
+      "methods": ["GET"],
+      "status": 200,
+      "headers": [{
+        "Content-Type": "application/json"
+      }],
+      "body": "{\"a\": 20}"
+    },
+  ],
+  "proxy": "TODO"
+}
