@@ -89,7 +89,7 @@ func main() {
 	// defaults
 	config := Config{
 		Port:       "8000",
-		ServeFiles: false,
+		ServeFiles: true,
 	}
 
 	// parse flags
