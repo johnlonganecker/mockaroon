@@ -101,7 +101,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "A Simple HTTPS Server for local development"
-	app.UsageText = "mockaroon [options] [port]"
+	app.UsageText = "mockaroon [global options] [port]"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
