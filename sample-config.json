@@ -1,6 +1,10 @@
 {
   "port": "8080",
   "serveFiles": true,
+  "ssl": {
+    "cert": "test.crt",
+    "private": "test.key"
+  },
   "endpoints": [
     {
       "paths": ["/path1", "/path2"],
