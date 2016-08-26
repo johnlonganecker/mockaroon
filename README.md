@@ -5,6 +5,16 @@ Made to act and behave exactly like `python -m SimpleHTTPServer`
 
 ## Setup
 
+```
+brew tap johnlonganecker/mockaroon
+brew install mockaroon
+```
+
+**Upgrade to latest release**
+```
+brew upgrade mockaroon
+```
+
 ## How to Use
 
 Serve static content
