@@ -37,7 +37,7 @@ override default port
 ```
 
 **staticFiles** `default true`<br>
-override default port
+override default of hosting static files
 ```
 {
   "staticFiles": false
@@ -46,12 +46,14 @@ override default port
 
 **ssl**<br>
 If you dont want https omit it
+```
 {
   ssl: {
     "private": "test.key",
     "cert": "test.cert"
   }
 }
+```
 
 **endpoints**<br>
 override default port
@@ -72,10 +74,10 @@ override default port
 - add gzip support https://gist.github.com/the42/1956518
 - Add proxy feature to forward requests to another REST API
 - Unit Tests
-- add more useful --help flag output
-- Compile Linux/Windows binary
 - CI system (concourse)
-- Terminal Output match python SimpleHTTPServer
+- add more useful --help flag output
 - verbose flag for debugging
+- Compile Linux/Windows binary
 - Scoop (for windows install)
+- Terminal Output match python SimpleHTTPServer
 - Use HTML templates to make file server look more like python SimpleHTTPServer
