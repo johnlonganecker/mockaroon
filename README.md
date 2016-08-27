@@ -70,12 +70,26 @@ override default port
 ```
 {
   "endpoints": [
-    "paths": "",
-    "methods": ["", ""],
-    "headers": [{
-      "Content-Type": "application/json"
-    }],
-    "body": "response"
+    {
+      "paths": "",
+      "methods": ["", ""],
+      "headers": [{
+        "Content-Type": "application/json"
+      }],
+      "body": "response"
+    }
+  ]
+}
+```
+
+**proxies**<br>
+```
+{
+  "proxies": [
+    {
+      "paths": "",
+      "destination": ""
+    }
   ]
 }
 ```
