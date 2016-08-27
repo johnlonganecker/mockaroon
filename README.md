@@ -81,11 +81,12 @@ override default port
 ```
 
 ## TODO
-- add gzip support https://gist.github.com/the42/1956518
-- Add proxy feature to forward requests to another REST API
+- Add gzip support https://gist.github.com/the42/1956518
+- better readme/docs
 - Unit Tests
 - CI system (concourse)
-- add more useful --help flag output
+- Add host routing feature
+- Add more useful --help flag output
 - verbose flag for debugging
 - Compile Linux/Windows binary
 - Scoop (for windows install)

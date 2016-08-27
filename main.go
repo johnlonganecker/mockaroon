@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -30,6 +32,11 @@ type Endpoint struct {
 	Body    string              `yaml:"body"`
 }
 
+type Proxy struct {
+	Paths       []string `yaml:"paths"`
+	Destination string   `yaml:"destination"`
+}
+
 type SSL struct {
 	Cert    string `yaml:"cert"`
 	Private string `yaml:"private"`
@@ -40,6 +47,7 @@ type Config struct {
 	Port       string     `yaml:"port"`
 	SSL        SSL        `yaml:"ssl"`
 	Endpoints  []Endpoint `yaml:"endpoints"`
+	Proxies    []Proxy    `yaml:"proxies"`
 }
 
 func (e Endpoint) HandleHTTP(w http.ResponseWriter, req *http.Request) {
@@ -50,6 +58,21 @@ func (e Endpoint) HandleHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	w.WriteHeader(e.Status)
 	w.Write([]byte(e.Body))
+}
+
+func (p Proxy) HandleHttp(w http.ResponseWriter, req *http.Request) {
+
+	url, _ := url.Parse(p.Destination)
+
+	// set the proper host
+	req.Host = url.Host
+
+	// make sure we set the proper host for the proxy
+	w.Header().Set("Host", url.Host+req.URL.Path)
+
+	// TODO perhaps don't make this on every request
+	proxy := httputil.NewSingleHostReverseProxy(url)
+	proxy.ServeHTTP(w, req)
 }
 
 func (c *Config) LoadConfigFile(filepath string) error {
@@ -162,6 +185,13 @@ func main() {
 			for _, path := range endpoint.Paths {
 				muxRouter.HandleFunc(path, endpoint.HandleHTTP).Methods(endpoint.Methods...)
 				finalOutput += "adding route " + path + "\n"
+			}
+		}
+
+		for _, proxy := range config.Proxies {
+			for _, path := range proxy.Paths {
+				muxRouter.HandleFunc(path, proxy.HandleHttp)
+				finalOutput += "adding proxy route " + path + "\n"
 			}
 		}
 

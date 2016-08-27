@@ -22,4 +22,7 @@ endpoints:
     headers: 
       - Content-Type: application/json
     body: '{"name": "John"}'
-proxy: "TODO"
+proxies:
+  - paths:
+    - /users/{.*}
+    destination: https://api.github.com

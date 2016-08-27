@@ -25,5 +25,10 @@
       "body": "{\"name\": \"john\"}"
     },
   ],
-  "proxy": "TODO"
+  "proxies": [
+    {
+      "paths": ["/users/{.*}"],
+      "destination": "https://api.github.com",
+    }
+  ]
 }
