@@ -72,6 +72,7 @@ func (p Proxy) HandleHttp(w http.ResponseWriter, req *http.Request) {
 
 	// TODO perhaps don't make this on every request
 	proxy := httputil.NewSingleHostReverseProxy(url)
+
 	proxy.ServeHTTP(w, req)
 }
 
@@ -207,7 +208,10 @@ func main() {
 		} else {
 			finalOutput = fmt.Sprintf("Serving HTTPS on 0.0.0.0 port %s ...\n", config.Port) + finalOutput
 			fmt.Print(finalOutput)
-			http.ListenAndServeTLS(":"+config.Port, config.SSL.Cert, config.SSL.Private, muxRouter)
+			err := http.ListenAndServeTLS(":"+config.Port, config.SSL.Cert, config.SSL.Private, Handlers.CORS()(muxRouter))
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 
 		return nil
