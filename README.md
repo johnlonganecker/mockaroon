@@ -104,8 +104,8 @@ override default port
 {
   "proxies": [
     {
-      "paths": "",
-      "destination": ""
+      "paths": ["/users/{.*}"],
+      "destination": "https://somehost:1337"
     }
   ]
 }
