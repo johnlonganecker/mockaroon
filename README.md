@@ -29,6 +29,16 @@ Serve static content - specify port
 Serving HTTP on 0.0.0.0 port 8080 ...
 ```
 
+Load configuration from a config file
+```
+> mockaroon --config config.json
+Serving HTTPS on 0.0.0.0 port 8080 ...
+Serving static files
+adding route /path1
+adding route /path2
+adding route /path3
+```
+
 ### How is this different from Python SimpleHTTPServer?
 
 #### Config Files
@@ -55,12 +65,19 @@ override default of hosting static files
 ```
 
 **ssl**<br>
+
+Friendly reminder - to create SSL cert and private key
+```
+ssh-keygen -f private.key
+openssl req -x509 -nodes -days 3065 -newkey rsa:2048 -keyout private.key -out cert.crt
+```
+
 If you dont want https omit it
 ```
 {
   ssl: {
-    "private": "test.key",
-    "cert": "test.cert"
+    "private": "private.key",
+    "cert": "cert.cert"
   }
 }
 ```
@@ -95,8 +112,9 @@ override default port
 ```
 
 ## TODO
-- Add gzip support https://gist.github.com/the42/1956518
+- enable CORS
 - better readme/docs
+- add host address to bind too
 - Unit Tests
 - CI system (concourse)
 - Add host routing feature
@@ -106,3 +124,4 @@ override default port
 - Scoop (for windows install)
 - Terminal Output match python SimpleHTTPServer
 - Use HTML templates to make file server look more like python SimpleHTTPServer
+
