@@ -52,7 +52,7 @@ Currently JSON and YAML config files are supported
 override default port
 ```
 {
-  "port": "7896"
+  "port": 7896
 }
 ```
 
@@ -83,7 +83,7 @@ If you dont want https omit it
 ```
 
 **endpoints**<br>
-override default port
+Latency allows you to randomly pick a delay between min and max milliseconds
 ```
 {
   "endpoints": [
@@ -94,6 +94,10 @@ override default port
         "Content-Type": "application/json"
       }],
       "body": "response"
+      "latency": {
+        "min": 100,
+        "max": 1000
+      }
     }
   ]
 }
@@ -124,4 +128,5 @@ override default port
 - Scoop (for windows install)
 - Terminal Output match python SimpleHTTPServer
 - Use HTML templates to make file server look more like python SimpleHTTPServer
-
+- randomize response
+- Dependency management (IE godeps)

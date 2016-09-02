@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -30,6 +31,12 @@ type Endpoint struct {
 	Headers []map[string]string `yaml:"headers"`
 	Methods []string            `yaml:"methods"`
 	Body    string              `yaml:"body"`
+	Latency Latency             `yaml:"latency"`
+}
+
+type Latency struct {
+	Min int `yaml:"min"`
+	Max int `yaml:"max"`
 }
 
 type Proxy struct {
@@ -44,10 +51,14 @@ type SSL struct {
 
 type Config struct {
 	ServeFiles bool       `yaml:"serveFiles",omitempty`
-	Port       string     `yaml:"port"`
+	Port       int        `yaml:"port"`
 	SSL        SSL        `yaml:"ssl"`
 	Endpoints  []Endpoint `yaml:"endpoints"`
 	Proxies    []Proxy    `yaml:"proxies"`
+}
+
+type Context struct {
+	Latency Latency
 }
 
 func (e Endpoint) HandleHTTP(w http.ResponseWriter, req *http.Request) {
@@ -76,6 +87,21 @@ func (p Proxy) HandleHttp(w http.ResponseWriter, req *http.Request) {
 	proxy.ServeHTTP(w, req)
 }
 
+func CalcLatency(min int, max int) (int, error) {
+
+	if min == 0 && max == 0 {
+		return 0, nil
+	}
+
+	if max < min {
+		return 0, errors.New("Latency Max has to be less then Min")
+	}
+
+	timeRange := max - min
+
+	return (rand.Intn(timeRange) + min), nil
+}
+
 func (c *Config) LoadConfigFile(filepath string) error {
 
 	var data []byte
@@ -90,6 +116,20 @@ func (c *Config) LoadConfigFile(filepath string) error {
 	}
 
 	return nil
+}
+
+type Middleware struct {
+	handler http.HandlerFunc
+	context Context
+}
+
+func (m *Middleware) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	latency, err := CalcLatency(m.context.Latency.Min, m.context.Latency.Max)
+	if err != nil {
+		handleError(err)
+	}
+	time.Sleep(time.Duration(latency) * time.Millisecond)
+	m.handler.ServeHTTP(w, req)
 }
 
 func LoadFile(filepath string) ([]byte, error) {
@@ -145,11 +185,13 @@ func main() {
 
 	// defaults
 	config := Config{
-		Port:       "8000",
+		Port:       8000,
 		ServeFiles: true,
 	}
 
 	app.Action = func(c *cli.Context) error {
+
+		var err error
 
 		// load in config file
 		if configPath != "" {
@@ -162,16 +204,16 @@ func main() {
 		// command line port overrides all
 		tail := c.Args()
 		if len(tail) > 0 {
-			config.Port = tail[0]
+			config.Port, err = strconv.Atoi(tail[0])
+			if err != nil {
+				handleError(err)
+			}
 		}
 
 		// validate port
-		port, err := strconv.Atoi(config.Port)
-		if err != nil {
-			handleError(err)
-		}
-		if port < 1 {
-			handleError(errors.New(config.Port + " is not a valid port"))
+		port := strconv.Itoa(config.Port)
+		if config.Port < 1 {
+			handleError(errors.New(port + " is not a valid port"))
 		}
 
 		// if port is not last param
@@ -184,7 +226,11 @@ func main() {
 
 		for _, endpoint := range config.Endpoints {
 			for _, path := range endpoint.Paths {
-				muxRouter.HandleFunc(path, endpoint.HandleHTTP).Methods(endpoint.Methods...)
+				m := Middleware{
+					handler: endpoint.HandleHTTP,
+					context: Context{Latency{Min: endpoint.Latency.Min, Max: endpoint.Latency.Max}},
+				}
+				muxRouter.HandleFunc(path, m.ServeHTTP).Methods(endpoint.Methods...)
 				finalOutput += "adding route " + path + "\n"
 			}
 		}
@@ -202,13 +248,13 @@ func main() {
 		}
 
 		if config.SSL.Cert == "" && config.SSL.Private == "" {
-			finalOutput = fmt.Sprintf("Serving HTTP on 0.0.0.0 port %s ...\n", config.Port) + finalOutput
+			finalOutput = fmt.Sprintf("Serving HTTP on 0.0.0.0 port %d ...\n", config.Port) + finalOutput
 			fmt.Print(finalOutput)
-			http.ListenAndServe(":"+config.Port, muxRouter)
+			http.ListenAndServe(":"+port, muxRouter)
 		} else {
-			finalOutput = fmt.Sprintf("Serving HTTPS on 0.0.0.0 port %s ...\n", config.Port) + finalOutput
+			finalOutput = fmt.Sprintf("Serving HTTPS on 0.0.0.0 port %d ...\n", config.Port) + finalOutput
 			fmt.Print(finalOutput)
-			err := http.ListenAndServeTLS(":"+config.Port, config.SSL.Cert, config.SSL.Private, Handlers.CORS()(muxRouter))
+			err := http.ListenAndServeTLS(":"+port, config.SSL.Cert, config.SSL.Private, muxRouter)
 			if err != nil {
 				fmt.Println(err)
 			}
