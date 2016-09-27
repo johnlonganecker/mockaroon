@@ -15,6 +15,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -230,14 +231,29 @@ func main() {
 					handler: endpoint.HandleHTTP,
 					context: Context{Latency{Min: endpoint.Latency.Min, Max: endpoint.Latency.Max}},
 				}
-				muxRouter.HandleFunc(path, m.ServeHTTP).Methods(endpoint.Methods...)
+				muxRouter.
+					Methods(endpoint.Methods...).
+					MatcherFunc(func(r *http.Request, rm *mux.RouteMatch) bool {
+						match, _ := regexp.MatchString(path, r.URL.Path)
+						// TODO handle error from regex
+						return match
+					}).
+					HandlerFunc(m.ServeHTTP)
+
 				finalOutput += "adding route " + path + "\n"
 			}
 		}
 
 		for _, proxy := range config.Proxies {
 			for _, path := range proxy.Paths {
-				muxRouter.HandleFunc(path, proxy.HandleHttp)
+				muxRouter.
+					MatcherFunc(func(r *http.Request, rm *mux.RouteMatch) bool {
+						match, _ := regexp.MatchString(path, r.URL.Path)
+						//TODO handle error from regex
+						return match
+					}).
+					HandlerFunc(proxy.HandleHttp)
+
 				finalOutput += "adding proxy route " + path + "\n"
 			}
 		}

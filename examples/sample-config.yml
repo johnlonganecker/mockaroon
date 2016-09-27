@@ -27,5 +27,5 @@ endpoints:
     body: '{"name": "John"}'
 proxies:
   - paths:
-    - /users/{.*}
+    - /users/.*
     destination: https://api.github.com
